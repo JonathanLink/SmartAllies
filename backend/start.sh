@@ -18,30 +18,14 @@ fi
 
 echo "✅ Maven found: $(mvn -version | head -n 1)"
 
-# Check if Ollama is installed
+# Check if Ollama CLI is installed (optional, for local testing)
 if ! command -v ollama &> /dev/null; then
-    echo "⚠️  Ollama is not installed. Please install from https://ollama.ai"
-    echo "   After installation, run: ollama pull llama3.2"
-    exit 1
+    echo "ℹ️  Ollama CLI not found locally (using remote host - OK)"
 fi
 
-echo "✅ Ollama found"
-
-# Start Ollama service in background if not running
-if ! curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
-    echo "📡 Starting Ollama service..."
-    ollama serve > /dev/null 2>&1 &
-    sleep 3
-fi
-
-# Check if llama3.2 model is available
-echo "🔍 Checking for llama3.2 model..."
-if ! ollama list | grep -q "llama3.2"; then
-    echo "📥 Pulling llama3.2 model (this may take a few minutes)..."
-    ollama pull llama3.2
-else
-    echo "✅ llama3.2 model found"
-fi
+echo "✅ Ollama CLI found"
+echo "ℹ️  Using remote Ollama host (configured in application.properties)"
+echo ""
 
 # Build the application
 echo "🔨 Building application..."

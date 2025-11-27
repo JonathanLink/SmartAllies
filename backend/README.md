@@ -22,24 +22,21 @@ Spring Boot backend for the SmartAllies Incident Reporting Chatbot system.
    mvn -version
    ```
 
-3. **Ollama** (for local LLM)
-   - Install from: https://ollama.ai
-   - Start Ollama service:
-     ```bash
-     ollama serve
+3. **Remote Ollama Host** (configured)
+   - Update `application.properties` with your Ollama host URL:
+     ```properties
+     spring.ai.ollama.base-url=http://your-ollama-host:11434
      ```
-   - Pull required model:
-     ```bash
-     ollama pull llama3.2
-     ollama pull nomic-embed-text
-     ```
+   - Ensure your Ollama host has the required models:
+     - llama3.2 (for chat)
+     - nomic-embed-text (for embeddings)
 
 ## Quick Start
 
-### 1. Start Ollama
-```bash
-# In a separate terminal
-ollama serve
+### 1. Configure Remote Ollama Host
+Edit `src/main/resources/application.properties`:
+```properties
+spring.ai.ollama.base-url=http://your-ollama-host:11434
 ```
 
 ### 2. Build the Application
@@ -153,9 +150,10 @@ mvn test
 ## Troubleshooting
 
 ### Ollama Connection Issues
-1. Ensure Ollama is running: `ollama serve`
-2. Check the model is available: `ollama list`
-3. Verify base URL in application.properties
+1. Verify remote Ollama host is accessible
+2. Check the base URL in application.properties
+3. Ensure firewall allows connection to Ollama host port 11434
+4. Test connection: `curl http://your-ollama-host:11434/api/tags`
 
 ### Port Already in Use
 Change the port in `application.properties`:
