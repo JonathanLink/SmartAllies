@@ -4,7 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { FloorPlanPin } from '@/types/incident.types';
 
-type Floor = 'minusOne' | 'minusTwo' | 'minusThree' | 'ground' | 'first' | 'second' | 'third';
+type Floor =
+  'minusOne'
+  | 'minusTwo'
+  | 'minusThree'
+  | 'ground'
+  | 'first'
+  | 'second'
+  | 'third';
 
 interface FloorPlanSelectorProps {
   onLocationSelect: (location: string) => void;
@@ -78,7 +85,7 @@ export function FloorPlanSelector({ onLocationSelect }: FloorPlanSelectorProps) 
 
         <div
           onClick={handleClick}
-          className="relative w-full h-96 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg cursor-crosshair hover:bg-gray-50 transition-colors overflow-hidden"
+          className="relative w-full bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg cursor-crosshair hover:bg-gray-50 transition-colors overflow-hidden aspect-square"
           style={{
             backgroundImage: `url('${FLOOR_IMAGES[selectedFloor]}')`,
             backgroundSize: 'contain',
