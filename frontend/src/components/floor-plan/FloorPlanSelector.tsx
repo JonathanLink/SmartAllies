@@ -4,11 +4,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { FloorPlanPin } from '@/types/incident.types';
 
+type Floor = 'ground' | 'first' | 'second' | 'third';
+
 interface FloorPlanSelectorProps {
   onLocationSelect: (location: string) => void;
 }
 
+const FLOOR_IMAGES: Record<Floor, string> = {
+  ground: '/images/floor-plans/ground-floor.png',
+  first: '/images/floor-plans/first-floor.png',
+  second: '/images/floor-plans/second-floor.png',
+  third: '/images/floor-plans/third-floor.png',
+};
+
+const FLOOR_LABELS: Record<Floor, string> = {
+  ground: 'Ground',
+  first: '1st',
+  second: '2nd',
+  third: '3rd',
+};
+
 export function FloorPlanSelector({ onLocationSelect }: FloorPlanSelectorProps) {
+  const [selectedFloor, setSelectedFloor] = useState<Floor>('ground');
   const [pin, setPin] = useState<FloorPlanPin | null>(null);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -21,8 +38,15 @@ export function FloorPlanSelector({ onLocationSelect }: FloorPlanSelectorProps) 
 
   const handleConfirm = () => {
     if (pin) {
-      onLocationSelect(`Floor plan location: ${pin.x.toFixed(1)}%, ${pin.y.toFixed(1)}%`);
+      onLocationSelect(
+        `Floor plan location: ${FLOOR_LABELS[selectedFloor]} Floor, X: ${pin.x.toFixed(1)}%, Y: ${pin.y.toFixed(1)}%`
+      );
     }
+  };
+
+  const handleFloorChange = (floor: Floor) => {
+    setSelectedFloor(floor);
+    setPin(null);
   };
 
   return (
@@ -33,13 +57,27 @@ export function FloorPlanSelector({ onLocationSelect }: FloorPlanSelectorProps) 
           Select Location on Floor Plan
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          {(Object.keys(FLOOR_LABELS) as Floor[]).map((floor) => (
+            <Button
+              key={floor}
+              variant={selectedFloor === floor ? 'default' : 'outline'}
+              onClick={() => handleFloorChange(floor)}
+            >
+              {FLOOR_LABELS[floor]} Floor
+            </Button>
+          ))}
+        </div>
+
         <div
           onClick={handleClick}
-          className="relative w-full h-96 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg cursor-crosshair hover:bg-gray-50 transition-colors"
+          className="relative w-full h-96 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg cursor-crosshair hover:bg-gray-50 transition-colors overflow-hidden"
           style={{
-            backgroundImage: 'linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px)',
-            backgroundSize: '20px 20px',
+            backgroundImage: `url('${FLOOR_IMAGES[selectedFloor]}')`,
+            backgroundSize: 'contain',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
           }}
         >
           <div className="absolute inset-0 flex items-center justify-center text-gray-400">
@@ -54,6 +92,7 @@ export function FloorPlanSelector({ onLocationSelect }: FloorPlanSelectorProps) 
             </div>
           )}
         </div>
+
         {pin && (
           <div className="mt-4 flex justify-between items-center">
             <p className="text-sm text-gray-600">
