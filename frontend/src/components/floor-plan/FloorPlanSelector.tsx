@@ -64,7 +64,7 @@ export function FloorPlanSelector({ onLocationSelect }: FloorPlanSelectorProps) 
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(Object.keys(FLOOR_LABELS) as Floor[]).map((floor) => (
             <Button
               key={floor}
