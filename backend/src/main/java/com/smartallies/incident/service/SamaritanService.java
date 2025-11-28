@@ -32,10 +32,7 @@ public class SamaritanService {
     private final IncidentReportService incidentReportService;
 
     private static final List<SamaritanPartner> SAMARITAN_PARTNERS = List.of(
-            new SamaritanPartner("James Anderson", "https://i.pravatar.cc/150?img=15"),
-            new SamaritanPartner("Lisa Thompson", "https://i.pravatar.cc/150?img=9"),
-            new SamaritanPartner("Robert Martinez", "https://i.pravatar.cc/150?img=13"),
-            new SamaritanPartner("Anna Williams", "https://i.pravatar.cc/150?img=20")
+            new SamaritanPartner("Caroline Polotto", "images/responder/hr-marie.png")
     );
 
     public ConnectSamaritanResponse connectToSamaritan(String sessionId) {

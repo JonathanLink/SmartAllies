@@ -32,7 +32,7 @@ const tickets: ResponderTicket[] = [
     category: 'Human Incident',
     priority: 'High',
     status: 'In Progress',
-    reporter: 'David (HR partner)',
+    reporter: 'Caroline Polotto (HR partner)',
     victim: 'Anna R.',
     assignedResponder: 'John Allen',
     summary: 'Anna reported uncomfortable comments about her outfit in the canteen. Immediate follow-up is required.',
