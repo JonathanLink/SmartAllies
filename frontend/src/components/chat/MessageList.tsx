@@ -1,21 +1,25 @@
 import { MapPin } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import type { ChatMessage } from '@/types/incident.types';
+import type { FloorPlanSelection } from '@/types/floor-plan.types';
 import { cn } from '@/utils/helpers';
+import { FloorPlanSelector } from '@/components/floor-plan/FloorPlanSelector';
 
 interface MessageListProps {
   messages: ChatMessage[];
+  showFloorPlan?: boolean;
+  onLocationSelect?: (selection: FloorPlanSelection) => void;
 }
 
-export function MessageList({ messages }: MessageListProps) {
+export function MessageList({ messages, showFloorPlan, onLocationSelect }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, showFloorPlan]);
 
   return (
-    <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-20 space-y-3 sm:space-y-4 bg-gradient-to-b from-white/80 via-white/70 to-transparent">
+    <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 sm:py-20 pb-24 sm:pb-32 space-y-3 sm:space-y-4 bg-gradient-to-b from-white/80 via-white/70 to-transparent">
       {messages.map((message) => (
         <div
           key={message.id}
@@ -77,6 +81,15 @@ export function MessageList({ messages }: MessageListProps) {
           </div>
         </div>
       ))}
+      
+      {showFloorPlan && onLocationSelect && (
+        <div className="flex justify-start">
+          <div className="w-full sm:max-w-[80%] bg-white/90 text-gray-900 rounded-2xl px-3 sm:px-5 py-2.5 sm:py-3 shadow-md border border-white/50 backdrop-blur-sm">
+            <FloorPlanSelector onLocationSelect={onLocationSelect} />
+          </div>
+        </div>
+      )}
+      
       <div ref={messagesEndRef} />
     </div>
   );

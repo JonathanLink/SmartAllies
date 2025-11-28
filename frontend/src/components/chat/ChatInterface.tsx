@@ -266,13 +266,11 @@ export function ChatInterface() {
         <div className="flex-1 flex flex-col min-h-0 sm:px-4 overflow-y-auto pb-2 pt-20 sm:pt-0">
           <Card className="flex-1 flex flex-col overflow-hidden border-0 sm:border sm:border-orange-100/70 shadow-none sm:shadow-2xl rounded-none sm:rounded-2xl mt-2 sm:mt-4">
             <div className="h-1 w-full bg-gradient-to-r from-primary via-orange-400 to-orange-300" />
-            <MessageList messages={messages} />
-
-            {showFloorPlan ? (
-              <div className="p-3 sm:p-6 border-t border-orange-100/70 bg-white/60 backdrop-blur">
-                <FloorPlanSelector onLocationSelect={handleLocationSelect} />
-              </div>
-            ) : null}
+            <MessageList 
+              messages={messages} 
+              showFloorPlan={showFloorPlan}
+              onLocationSelect={handleLocationSelect}
+            />
 
             {shouldShowActions && (
               <ActionButtons
