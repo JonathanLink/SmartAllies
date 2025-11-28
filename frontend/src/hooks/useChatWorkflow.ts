@@ -2,6 +2,12 @@ import { useState, useCallback } from 'react';
 import { apiService } from '@/services/api.service';
 import { generateSessionId } from '@/utils/helpers';
 import type { ChatMessage, ChatResponse } from '@/types/incident.types';
+import type { FloorPlanSelection } from '@/types/floor-plan.types';
+
+interface SendMessageOptions {
+  imageUrl?: string;
+  floorPlanSelection?: FloorPlanSelection;
+}
 
 export function useChatWorkflow() {
   const createInitialMessages = useCallback(
@@ -22,13 +28,14 @@ export function useChatWorkflow() {
   const [currentResponse, setCurrentResponse] = useState<ChatResponse | null>(null);
 
   const sendMessage = useCallback(
-    async (content: string, imageUrl?: string) => {
+    async (content: string, options?: SendMessageOptions) => {
       const userMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'user',
         content,
         timestamp: new Date(),
-        imageUrl,
+        imageUrl: options?.imageUrl,
+        floorPlanSelection: options?.floorPlanSelection,
       };
 
       setMessages((prev) => [...prev, userMessage]);
@@ -38,7 +45,7 @@ export function useChatWorkflow() {
         const response = await apiService.sendMessage({
           sessionId,
           message: content,
-          imageUrl,
+          imageUrl: options?.imageUrl,
         });
 
         setCurrentResponse(response);

@@ -2,6 +2,7 @@ import { APP_CONFIG } from '@/config/constants';
 import type { ChatRequest, ChatResponse } from '@/types/incident.types';
 import type { IncidentReport, SubmitReportRequest } from '@/types/report.types';
 import type { ConnectHRRequest, ConnectHRResponse, HRChatRequest, HRChatResponse } from '@/types/hr.types';
+import type { FacilityDetailsRequest, FacilityDetailsResponse } from '@/types/facility.types';
 
 class ApiService {
   private baseUrl = APP_CONFIG.API_BASE_URL;
@@ -100,6 +101,22 @@ class ApiService {
   async checkHealth(): Promise<string> {
     const response = await fetch(`${this.baseUrl}/health`);
     return response.text();
+  }
+
+  async saveFacilityDetails(request: FacilityDetailsRequest): Promise<FacilityDetailsResponse> {
+    const response = await fetch(`${this.baseUrl}/reports/facility-details`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Save facility details error: ${response.statusText}`);
+    }
+
+    return response.json();
   }
 }
 
