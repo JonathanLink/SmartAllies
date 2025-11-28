@@ -4,18 +4,10 @@ import { MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { FloorPlanPin } from '@/types/incident.types';
-
-type Floor =
-  'minusOne'
-  | 'minusTwo'
-  | 'minusThree'
-  | 'ground'
-  | 'first'
-  | 'second'
-  | 'third';
+import type { Floor, FloorPlanSelection } from '@/types/floor-plan.types';
 
 interface FloorPlanSelectorProps {
-  onLocationSelect: (location: string) => void;
+  onLocationSelect: (selection: FloorPlanSelection) => void;
 }
 
 const FLOOR_IMAGES: Record<Floor, string> = {
@@ -52,9 +44,13 @@ export function FloorPlanSelector({ onLocationSelect }: FloorPlanSelectorProps) 
 
   const handleConfirm = () => {
     if (pin) {
-      onLocationSelect(
-        `Floor plan location: ${FLOOR_LABELS[selectedFloor]}, X: ${pin.x.toFixed(1)}%, Y: ${pin.y.toFixed(1)}%`
-      );
+      onLocationSelect({
+        floor: selectedFloor,
+        floorLabel: FLOOR_LABELS[selectedFloor],
+        imagePath: FLOOR_IMAGES[selectedFloor],
+        x: pin.x,
+        y: pin.y,
+      });
     }
   };
 

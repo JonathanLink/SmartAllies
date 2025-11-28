@@ -1,3 +1,5 @@
+import type { FloorPlanSelection } from './floor-plan.types';
+
 export enum IncidentType {
   HUMAN = 'HUMAN',
   FACILITY = 'FACILITY',
@@ -23,6 +25,7 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   imageUrl?: string;
+  floorPlanSelection?: FloorPlanSelection;
 }
 
 export interface ChatRequest {

@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatWorkflow } from '@/hooks/useChatWorkflow';
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { apiService } from '@/services/api.service';
 import type { HRSession } from '@/types/hr.types';
+import type { FloorPlanSelection } from '@/types/floor-plan.types';
 
 export function ChatInterface() {
   const navigate = useNavigate();
@@ -24,6 +26,13 @@ export function ChatInterface() {
   const [submittedReportId, setSubmittedReportId] = useState<string | null>(null);
   const [hrSession, setHrSession] = useState<HRSession | null>(null);
   const [isConnectingHR, setIsConnectingHR] = useState(false);
+  const [latestFloorSelection, setLatestFloorSelection] = useState<FloorPlanSelection | null>(null);
+  const [facilityDetails, setFacilityDetails] = useState('');
+  const [facilityImage, setFacilityImage] = useState<File | null>(null);
+  const [facilityImagePreview, setFacilityImagePreview] = useState<string | null>(null);
+  const [facilityDetailsSaved, setFacilityDetailsSaved] = useState(false);
+  const [facilityDetailsError, setFacilityDetailsError] = useState<string | null>(null);
+  const [isSavingFacilityDetails, setIsSavingFacilityDetails] = useState(false);
 
   const handleActionClick = async (action: string) => {
     const lowerAction = action.toLowerCase();
@@ -53,8 +62,63 @@ export function ChatInterface() {
     }
   };
 
-  const handleLocationSelect = (location: string) => {
-    sendMessage(location);
+  const handleLocationSelect = (selection: FloorPlanSelection) => {
+    const location = `Floor plan location: ${selection.floorLabel}, X: ${selection.x.toFixed(1)}%, Y: ${selection.y.toFixed(1)}%`;
+    setLatestFloorSelection(selection);
+    setFacilityDetails('');
+    setFacilityImage(null);
+    setFacilityImagePreview(null);
+    setFacilityDetailsSaved(false);
+    setFacilityDetailsError(null);
+    sendMessage(location, { floorPlanSelection: selection });
+  };
+
+  const handleFacilityImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFacilityImage(file);
+      setFacilityDetailsSaved(false);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFacilityImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeFacilityImage = () => {
+    setFacilityImage(null);
+    setFacilityImagePreview(null);
+    setFacilityDetailsSaved(false);
+  };
+
+  const handleSaveFacilityDetails = async () => {
+    if (!latestFloorSelection) return;
+
+    setIsSavingFacilityDetails(true);
+    setFacilityDetailsError(null);
+
+    try {
+      let imageUrl: string | undefined;
+
+      if (facilityImage) {
+        imageUrl = await apiService.uploadImage(facilityImage);
+      }
+
+      await apiService.saveFacilityDetails({
+        sessionId,
+        details: facilityDetails.trim() || undefined,
+        imageUrl,
+        floor: latestFloorSelection.floor,
+      });
+
+      setFacilityDetailsSaved(true);
+    } catch (error) {
+      console.error('Failed to save facility details', error);
+      setFacilityDetailsError('Could not save details. Please try again.');
+    } finally {
+      setIsSavingFacilityDetails(false);
+    }
   };
 
   const handleSubmitReport = async (anonymous: boolean) => {
@@ -85,6 +149,12 @@ export function ChatInterface() {
     setPhoneNumber('');
     setSubmissionError(null);
     setSubmittedReportId(null);
+    setLatestFloorSelection(null);
+    setFacilityDetails('');
+    setFacilityImage(null);
+    setFacilityImagePreview(null);
+    setFacilityDetailsSaved(false);
+    setFacilityDetailsError(null);
     resetChat();
   };
 
@@ -109,6 +179,9 @@ export function ChatInterface() {
 
   const shouldShowActions =
     !!currentResponse?.suggestedActions?.length && !canSubmit && !submissionComplete && !showHROptions;
+
+  const shouldShowFacilityDetails =
+    currentResponse?.incidentType === IncidentType.FACILITY && Boolean(latestFloorSelection);
 
   if (hrSession?.connected) {
     return (
@@ -154,6 +227,64 @@ export function ChatInterface() {
                 <FloorPlanSelector onLocationSelect={handleLocationSelect} />
               </div>
             ) : null}
+
+            {shouldShowFacilityDetails && (
+              <div className="p-6 border-t border-orange-100/70 bg-gradient-to-r from-orange-50 to-white space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-800">Add more details for the facilities team</p>
+                    <p className="text-sm text-gray-600">
+                      Share extra context or a photo. This will be saved to the report without going through the assistant.
+                    </p>
+                  </div>
+                  {facilityDetailsSaved && (
+                    <span className="text-sm font-semibold text-green-700">Saved</span>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <textarea
+                    className="w-full rounded-xl border border-orange-100 bg-white/90 p-3 text-sm shadow-inner focus:border-primary focus:outline-none"
+                    rows={3}
+                    placeholder="Add any extra details about this facility issue..."
+                    value={facilityDetails}
+                    onChange={(e) => {
+                      setFacilityDetails(e.target.value);
+                      setFacilityDetailsSaved(false);
+                    }}
+                  />
+
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                      <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-primary">
+                        <input type="file" accept="image/*" className="hidden" onChange={handleFacilityImageSelect} />
+                        <span className="inline-flex items-center justify-center rounded-full bg-white px-3 py-1 shadow-sm border border-orange-100">
+                          Upload photo
+                        </span>
+                      </label>
+                      {facilityImagePreview && (
+                        <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-orange-100 shadow-sm">
+                          <img src={facilityImagePreview} alt="Preview" className="h-full w-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={removeFacilityImage}
+                            className="absolute -right-2 -top-2 rounded-full bg-primary px-2 py-1 text-xs font-bold text-white shadow-lg"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <Button onClick={handleSaveFacilityDetails} disabled={isSavingFacilityDetails}>
+                      {isSavingFacilityDetails ? 'Saving...' : 'Save for report'}
+                    </Button>
+                  </div>
+
+                  {facilityDetailsError && <p className="text-sm text-red-600">{facilityDetailsError}</p>}
+                </div>
+              </div>
+            )}
 
             {shouldShowActions && (
               <ActionButtons

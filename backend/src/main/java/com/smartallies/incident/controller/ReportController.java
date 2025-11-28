@@ -1,6 +1,8 @@
 package com.smartallies.incident.controller;
 
 import com.smartallies.incident.dto.IncidentReportResponse;
+import com.smartallies.incident.dto.FacilityDetailsRequest;
+import com.smartallies.incident.dto.FacilityDetailsResponse;
 import com.smartallies.incident.dto.SubmitReportRequest;
 import com.smartallies.incident.model.ReportStatus;
 import com.smartallies.incident.service.IncidentReportService;
@@ -34,6 +36,15 @@ public class ReportController {
         return reportService.getReport(reportId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/facility-details")
+    public ResponseEntity<FacilityDetailsResponse> saveFacilityDetails(
+            @RequestBody FacilityDetailsRequest request) {
+        log.info("Saving additional facility details for session: {}", request.getSessionId());
+
+        FacilityDetailsResponse response = reportService.saveFacilityDetails(request);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{reportId}/status")

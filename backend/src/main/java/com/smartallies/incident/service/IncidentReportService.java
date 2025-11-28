@@ -1,5 +1,7 @@
 package com.smartallies.incident.service;
 
+import com.smartallies.incident.dto.FacilityDetailsRequest;
+import com.smartallies.incident.dto.FacilityDetailsResponse;
 import com.smartallies.incident.dto.IncidentReportResponse;
 import com.smartallies.incident.dto.SubmitReportRequest;
 import com.smartallies.incident.model.ConversationContext;
@@ -73,6 +75,34 @@ public class IncidentReportService {
         report.setLastUpdated(LocalDateTime.now());
         
         return mapToResponse(report);
+    }
+
+    public FacilityDetailsResponse saveFacilityDetails(FacilityDetailsRequest request) {
+        log.info("Saving facility details for session: {}", request.getSessionId());
+
+        ConversationContext context = contextService.getContext(request.getSessionId());
+        if (context == null) {
+            throw new IllegalArgumentException("Session not found: " + request.getSessionId());
+        }
+
+        if (request.getDetails() != null && !request.getDetails().trim().isEmpty()) {
+            context.updateField("facility_additional_details", request.getDetails().trim());
+        }
+
+        if (request.getImageUrl() != null && !request.getImageUrl().trim().isEmpty()) {
+            context.updateField("facility_additional_image", request.getImageUrl());
+        }
+
+        if (request.getFloor() != null && !request.getFloor().trim().isEmpty()) {
+            context.updateField("facility_floor", request.getFloor());
+        }
+
+        contextService.updateContext(context);
+
+        return FacilityDetailsResponse.builder()
+                .status("saved")
+                .collectedFields(context.getCollectedFields())
+                .build();
     }
 
     private IncidentReportResponse mapToResponse(IncidentReport report) {

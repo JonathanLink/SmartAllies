@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { apiService } from '@/services/api.service';
 
 interface MessageInputProps {
-  onSendMessage: (message: string, imageUrl?: string) => void;
+  onSendMessage: (message: string, options?: { imageUrl?: string }) => void;
   isLoading: boolean;
 }
 
@@ -35,7 +35,7 @@ export function MessageInput({ onSendMessage, isLoading }: MessageInputProps) {
       }
     }
 
-    onSendMessage(content, imageUrl);
+    onSendMessage(content, { imageUrl });
     setMessage('');
     setSelectedImage(null);
     setImagePreview(null);
