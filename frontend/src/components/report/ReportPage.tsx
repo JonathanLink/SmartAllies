@@ -62,7 +62,7 @@ export function ReportPage() {
 
       {/* Sticky Header */}
       <div className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-orange-100/60 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
+        <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-16 py-3 sm:py-4 flex items-center justify-between">
           <button
             onClick={() => navigate('/')}
             className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
@@ -74,7 +74,7 @@ export function ReportPage() {
         </div>
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-10 space-y-6 flex-1 overflow-y-auto">
+      <div className="relative z-10 px-4 sm:px-8 lg:px-16 py-10 space-y-6 flex-1 overflow-y-auto">
         <header className="flex items-center justify-between rounded-2xl border border-white/60 bg-white/85 px-6 py-5 shadow-xl backdrop-blur-md">
           <div>
             <p className="text-sm uppercase tracking-wide text-primary font-semibold">Report ID: {report.reportId}</p>

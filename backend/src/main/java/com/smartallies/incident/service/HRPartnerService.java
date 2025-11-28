@@ -32,10 +32,7 @@ public class HRPartnerService {
     private final IncidentReportService incidentReportService;
 
     private static final List<HRPartner> HR_PARTNERS = List.of(
-            new HRPartner("Sarah Mitchell", "https://i.pravatar.cc/150?img=1"),
-            new HRPartner("Michael Chen", "https://i.pravatar.cc/150?img=12"),
-            new HRPartner("Emily Rodriguez", "https://i.pravatar.cc/150?img=5"),
-            new HRPartner("David Kim", "https://i.pravatar.cc/150?img=8")
+            new HRPartner("Caroline Polotto", "/images/responder/hr-marie.png")
     );
 
     public ConnectHRResponse connectToHR(String sessionId) {
