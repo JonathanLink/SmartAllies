@@ -253,7 +253,7 @@ export function ChatInterface() {
       </div>
 
       <div className="relative z-10 flex flex-col h-screen max-w-6xl mx-auto w-full">
-        <header className="sticky top-0 z-20 flex items-center border-b border-white/60 bg-white/80 px-4 sm:px-5 py-3 sm:py-4 shadow-lg backdrop-blur-md sm:mx-4 sm:mt-4 sm:rounded-2xl sm:border flex-shrink-0">
+        <header className="sticky top-0 z-20 flex items-center border-b border-white/60 bg-white/70 px-4 sm:px-5 py-3 sm:py-4 shadow-lg backdrop-blur-xl sm:mx-4 sm:mt-4 sm:rounded-2xl sm:border flex-shrink-0">
           <button 
             onClick={() => window.location.href = '/'}
             className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity"
@@ -281,7 +281,7 @@ export function ChatInterface() {
             )}
 
             {showHROptions ? (
-              <div className="border-t border-orange-100/70 p-3 sm:p-6 bg-gradient-to-r from-orange-50 to-white">
+              <div className="border-t border-orange-100/70 p-3 sm:p-6 pb-24 sm:pb-32 bg-gradient-to-r from-orange-50 to-white">
                 <p className="text-sm text-gray-700 mb-3 text-center font-medium">
                   Would you like to share more details or connect with an HR partner?
                 </p>
@@ -306,7 +306,7 @@ export function ChatInterface() {
             ) : null}
 
             {canSubmit && !submissionComplete && (
-              <div className="border-t border-orange-100/70 p-3 sm:p-6 bg-white/70 backdrop-blur space-y-3 sm:space-y-4">
+              <div className="border-t border-orange-100/70 p-3 sm:p-6 pb-24 sm:pb-32 bg-white/70 backdrop-blur space-y-3 sm:space-y-4">
                 <div className="flex gap-2 sm:gap-3 flex-col sm:flex-row justify-center">
                   <Button variant="outline" onClick={handleCancel} className="w-full sm:w-auto">
                     Cancel
@@ -400,7 +400,7 @@ export function ChatInterface() {
             )}
 
             {submissionComplete && submittedReportId && (
-              <div className="border-t border-orange-100/70 p-3 sm:p-6 bg-green-50/80 backdrop-blur space-y-3">
+              <div className="border-t border-orange-100/70 p-3 sm:p-6 pb-24 sm:pb-32 bg-green-50/80 backdrop-blur space-y-3">
                 <p className="text-sm text-green-800 font-medium text-center">
                   Your report has been submitted. You can view it now or start a new conversation.
                 </p>

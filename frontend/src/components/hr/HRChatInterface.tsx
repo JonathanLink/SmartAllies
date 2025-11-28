@@ -106,14 +106,14 @@ export function HRChatInterface({
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative h-screen flex flex-col overflow-hidden">
       <div className="pointer-events-none absolute inset-0 opacity-80">
         <div className="absolute -left-10 -top-16 h-56 w-56 rounded-full bg-orange-200 blur-3xl" />
         <div className="absolute right-0 top-1/3 h-64 w-64 rounded-full bg-orange-100 blur-3xl" />
         <div className="absolute bottom-0 left-1/4 h-72 w-72 rounded-full bg-orange-50 blur-3xl" />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-6">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-6 flex flex-col gap-6 h-full overflow-y-auto">
         <header className="flex items-center justify-between rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-xl backdrop-blur-md">
           <div className="flex items-center gap-3">
             {hrSession.hrPartnerImage && (
