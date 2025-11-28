@@ -39,6 +39,9 @@ export function ChatInterface() {
   const [samaritanSession, setSamaritanSession] = useState<SamaritanSession | null>(null);
   const [isConnectingSamaritan, setIsConnectingSamaritan] = useState(false);
   const [showSamaritanAlert, setShowSamaritanAlert] = useState(false);
+  const [showHRIdentityDialog, setShowHRIdentityDialog] = useState(false);
+  const [showSamaritanIdentityDialog, setShowSamaritanIdentityDialog] = useState(false);
+  const [identityName, setIdentityName] = useState('');
   const [_latestFloorSelection, setLatestFloorSelection] = useState<FloorPlanSelection | null>(null);
   const [_facilityDetails, setFacilityDetails] = useState('');
   const [_facilityImage, setFacilityImage] = useState<File | null>(null);
@@ -50,16 +53,19 @@ export function ChatInterface() {
     const lowerAction = action.toLowerCase();
     
     if (lowerAction.includes('connect') && lowerAction.includes('hr')) {
-      await connectToHR();
+      setShowHRIdentityDialog(true);
     } else {
       sendMessage(action);
     }
   };
 
-  const connectToHR = async () => {
+  const connectToHR = async (userName?: string) => {
     setIsConnectingHR(true);
     try {
-      const response = await apiService.connectToHR({ sessionId });
+      const response = await apiService.connectToHR({ 
+        sessionId,
+        userName: userName || undefined
+      });
       setHrSession({
         connected: response.connected,
         hrPartnerName: response.hrPartnerName,
@@ -74,11 +80,14 @@ export function ChatInterface() {
     }
   };
 
-  const connectToSamaritan = async () => {
+  const connectToSamaritan = async (userName?: string) => {
     setIsConnectingSamaritan(true);
     setShowSamaritanAlert(false);
     try {
-      const response = await apiService.connectToSamaritan({ sessionId });
+      const response = await apiService.connectToSamaritan({ 
+        sessionId,
+        userName: userName || undefined
+      });
       setSamaritanSession({
         connected: response.connected,
         samaritanName: response.samaritanName,
@@ -94,10 +103,10 @@ export function ChatInterface() {
   };
 
   useEffect(() => {
-    if (currentResponse?.metadata?.connectToSamaritan && !samaritanSession && !isConnectingSamaritan && !showSamaritanAlert) {
-      setShowSamaritanAlert(true);
+    if (currentResponse?.metadata?.connectToSamaritan && !samaritanSession && !isConnectingSamaritan && !showSamaritanAlert && !showSamaritanIdentityDialog) {
+      setShowSamaritanIdentityDialog(true);
     }
-  }, [currentResponse?.metadata?.connectToSamaritan, samaritanSession, isConnectingSamaritan, showSamaritanAlert]);
+  }, [currentResponse?.metadata?.connectToSamaritan, samaritanSession, isConnectingSamaritan, showSamaritanAlert, showSamaritanIdentityDialog]);
 
   const handleLocationSelect = (selection: FloorPlanSelection) => {
     const location = `Floor plan location: ${selection.floorLabel}, X: ${selection.x.toFixed(1)}%, Y: ${selection.y.toFixed(1)}%`;
@@ -426,6 +435,103 @@ export function ChatInterface() {
             <MessageInput onSendMessage={sendMessage} isLoading={isLoading} />
           </div>
         </div>
+
+        {/* HR Identity Dialog */}
+        <AlertDialog open={showHRIdentityDialog} onOpenChange={setShowHRIdentityDialog}>
+          <AlertDialogContent className="rounded-3xl border-2 border-orange-200 bg-gradient-to-br from-white to-orange-50 shadow-2xl">
+            <AlertDialogHeader className="space-y-3">
+              <AlertDialogTitle className="text-xl font-bold text-center text-gray-900">
+                Connect with HR Partner
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-base text-center text-gray-700 leading-relaxed">
+                Would you like to share your name with the HR partner, or remain anonymous?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">Your Name (optional)</label>
+                <Input
+                  value={identityName}
+                  onChange={(e) => setIdentityName(e.target.value)}
+                  placeholder="Enter your name or leave blank to stay anonymous"
+                />
+              </div>
+            </div>
+            <AlertDialogFooter className="mt-4 flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowHRIdentityDialog(false);
+                  setIdentityName('');
+                }}
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowHRIdentityDialog(false);
+                  connectToHR(identityName.trim() || undefined);
+                  setIdentityName('');
+                }}
+                className="w-full sm:w-auto bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-600 text-white font-semibold"
+              >
+                {identityName.trim() ? 'Connect with Name' : 'Connect Anonymously'}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Samaritan Identity Dialog */}
+        <AlertDialog open={showSamaritanIdentityDialog} onOpenChange={setShowSamaritanIdentityDialog}>
+          <AlertDialogContent className="rounded-3xl border-2 border-red-200 bg-gradient-to-br from-white to-red-50 shadow-2xl">
+            <AlertDialogHeader className="space-y-3">
+              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <AlertDialogTitle className="text-xl font-bold text-center text-gray-900">
+                Emergency First Aid Responder
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-base text-center text-gray-700 leading-relaxed">
+                A trained first aid responder is ready to assist. Would you like to share your name for better assistance?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-700">Your Name (optional)</label>
+                <Input
+                  value={identityName}
+                  onChange={(e) => setIdentityName(e.target.value)}
+                  placeholder="Enter your name or leave blank to stay anonymous"
+                />
+              </div>
+            </div>
+            <AlertDialogFooter className="mt-4 flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowSamaritanIdentityDialog(false);
+                  setIdentityName('');
+                }}
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowSamaritanIdentityDialog(false);
+                  connectToSamaritan(identityName.trim() || undefined);
+                  setIdentityName('');
+                }}
+                className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold"
+              >
+                {identityName.trim() ? 'Connect with Name' : 'Connect Anonymously'}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <AlertDialog open={showSamaritanAlert} onOpenChange={setShowSamaritanAlert}>
           <AlertDialogContent className="rounded-3xl border-2 border-orange-200 bg-gradient-to-br from-white to-orange-50 shadow-2xl">
