@@ -6,6 +6,7 @@ import com.smartallies.incident.dto.IncidentReportResponse;
 import com.smartallies.incident.dto.SubmitReportRequest;
 import com.smartallies.incident.model.ConversationContext;
 import com.smartallies.incident.model.IncidentReport;
+import com.smartallies.incident.model.IncidentType;
 import com.smartallies.incident.model.ReportStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,7 +79,7 @@ public class IncidentReportService {
     }
 
     public FacilityDetailsResponse saveFacilityDetails(FacilityDetailsRequest request) {
-        log.info("Saving facility details for session: {}", request.getSessionId());
+        log.info("Saving location/facility details for session: {}", request.getSessionId());
 
         ConversationContext context = contextService.getContext(request.getSessionId());
         if (context == null) {
@@ -94,7 +95,13 @@ public class IncidentReportService {
         }
 
         if (request.getFloor() != null && !request.getFloor().trim().isEmpty()) {
-            context.updateField("facility_floor", request.getFloor());
+            String floorValue = request.getFloor();
+            context.updateField("facility_floor", floorValue);
+            
+            if (context.getIncidentType() == IncidentType.EMERGENCY) {
+                context.updateField("location", floorValue);
+                log.warn("EMERGENCY: Location set to {}", floorValue);
+            }
         }
 
         contextService.updateContext(context);

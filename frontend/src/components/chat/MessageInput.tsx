@@ -2,7 +2,6 @@ import { useState, useRef } from 'react';
 import { Send, Paperclip, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { apiService } from '@/services/api.service';
 
 interface MessageInputProps {
   onSendMessage: (message: string, options?: { imageUrl?: string; imagePreview?: string }) => void;

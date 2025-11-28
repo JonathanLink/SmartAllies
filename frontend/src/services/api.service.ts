@@ -2,6 +2,7 @@ import { APP_CONFIG } from '@/config/constants';
 import type { ChatRequest, ChatResponse } from '@/types/incident.types';
 import type { IncidentReport, SubmitReportRequest } from '@/types/report.types';
 import type { ConnectHRRequest, ConnectHRResponse, HRChatRequest, HRChatResponse } from '@/types/hr.types';
+import type { ConnectSamaritanRequest, ConnectSamaritanResponse, SamaritanChatRequest, SamaritanChatResponse } from '@/types/samaritan.types';
 import type { FacilityDetailsRequest, FacilityDetailsResponse } from '@/types/facility.types';
 
 class ApiService {
@@ -93,6 +94,38 @@ class ApiService {
 
     if (!response.ok) {
       throw new Error(`HR chat error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async connectToSamaritan(request: ConnectSamaritanRequest): Promise<ConnectSamaritanResponse> {
+    const response = await fetch(`${this.baseUrl}/samaritan/connect`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Connect to Samaritan error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async sendSamaritanMessage(request: SamaritanChatRequest): Promise<SamaritanChatResponse> {
+    const response = await fetch(`${this.baseUrl}/samaritan/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Samaritan chat error: ${response.statusText}`);
     }
 
     return response.json();

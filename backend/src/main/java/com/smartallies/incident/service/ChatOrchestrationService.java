@@ -42,6 +42,7 @@ public class ChatOrchestrationService {
 			case AWAITING_REPORT_CONFIRMATION -> handleReportConfirmation(context, request);
 			case AWAITING_HR_DECISION -> handleHRDecision(context, request);
 			case EMERGENCY_ACTIVE -> handleEmergencyFlow(context, request);
+			case EMERGENCY_LOCATION_COLLECTED -> handleEmergencyLocationCollected(context);
 			case REPORT_READY -> handleReportReady(context);
 			case ALERT_SENT -> handleAlertSent(context);
 			case COMPLETED -> handleCompleted(context);
@@ -164,7 +165,7 @@ public class ChatOrchestrationService {
 						• Fire: %s
 						• Company Samaritans: %s
 						
-						Please provide the LOCATION of the emergency immediately.
+						Please select the LOCATION of the emergency on the floor plan.
 						""",
 				emergencyConfig.getPoliceNumber(),
 				emergencyConfig.getAmbulanceNumber(),
@@ -178,6 +179,7 @@ public class ChatOrchestrationService {
 				.workflowState(context.getWorkflowState())
 				.metadata(Map.of(
 						"isEmergency", true,
+						"showFloorPlan", true,
 						"emergencyNumbers", Map.of(
 								"police", emergencyConfig.getPoliceNumber(),
 								"ambulance", emergencyConfig.getAmbulanceNumber(),
@@ -349,6 +351,30 @@ public class ChatOrchestrationService {
 	private ChatResponse handleEmergencyFlow(ConversationContext context, ChatRequest request) {
 		log.warn("Handling emergency flow for session: {}", request.getSessionId());
 
+		if (context.hasField("location")) {
+			log.warn("EMERGENCY: Location confirmed - {}, connecting to Samaritan", context.getField("location"));
+			context.setWorkflowState(WorkflowState.EMERGENCY_LOCATION_COLLECTED);
+			contextService.updateContext(context);
+
+			String alertMessage = String.format("""
+					✅ Emergency alert sent!
+					Location: %s
+					
+					Connecting you with an emergency response Samaritan...
+					""", context.getField("location"));
+
+			return ChatResponse.builder()
+					.message(alertMessage)
+					.incidentType(IncidentType.EMERGENCY)
+					.workflowState(context.getWorkflowState())
+					.metadata(Map.of(
+							"location", context.getField("location"),
+							"connectToSamaritan", true,
+							"collectedFields", context.getCollectedFields()
+					))
+					.build();
+		}
+
 		String detailsPrompt = PromptTemplates.buildDetailsCollectionPrompt(
 				IncidentType.EMERGENCY,
 				context.getInitialMessage(),
@@ -366,38 +392,16 @@ public class ChatOrchestrationService {
 			}
 		});
 
-		boolean hasLocation = jsonResponse.has("hasLocation") &&
-				jsonResponse.get("hasLocation").asBoolean();
-
-		if (hasLocation && context.hasField("location")) {
-			log.warn("EMERGENCY ALERT: Location confirmed - {}", context.getField("location"));
-			context.setWorkflowState(WorkflowState.ALERT_SENT);
-
-			String alertMessage = String.format("""
-					✅ Emergency alert sent to company Samaritans!
-					Location: %s
-					Help is on the way. Please stay calm.
-					""", context.getField("location"));
-
-			return ChatResponse.builder()
-					.message(alertMessage)
-					.incidentType(IncidentType.EMERGENCY)
-					.workflowState(context.getWorkflowState())
-					.metadata(Map.of(
-							"alertSent", true,
-							"location", context.getField("location"),
-							"collectedFields", context.getCollectedFields()
-					))
-					.build();
-		}
-
 		contextService.updateContext(context);
 
 		return ChatResponse.builder()
 				.message(jsonResponse.get("message").asText())
 				.incidentType(IncidentType.EMERGENCY)
 				.workflowState(context.getWorkflowState())
-				.metadata(Map.of("collectedFields", context.getCollectedFields()))
+				.metadata(Map.of(
+						"collectedFields", context.getCollectedFields(),
+						"showFloorPlan", !context.hasField("location")
+				))
 				.build();
 	}
 
@@ -413,10 +417,24 @@ public class ChatOrchestrationService {
 
 	private ChatResponse handleAlertSent(ConversationContext context) {
 		return ChatResponse.builder()
-				.message("An emergency alert has already been sent. If you need to start a new report, please begin a new conversation.")
+				.message("The emergency has been documented and appropriate authorities have been notified. " +
+						"If you need to start a new report, please begin a new conversation.")
 				.incidentType(context.getIncidentType())
 				.workflowState(context.getWorkflowState())
 				.metadata(Map.of("collectedFields", context.getCollectedFields()))
+				.build();
+	}
+
+	private ChatResponse handleEmergencyLocationCollected(ConversationContext context) {
+		return ChatResponse.builder()
+				.message("Connecting you with emergency response team...")
+				.incidentType(context.getIncidentType())
+				.workflowState(context.getWorkflowState())
+				.metadata(Map.of(
+						"connectToSamaritan", true,
+						"location", context.getField("location"),
+						"collectedFields", context.getCollectedFields()
+				))
 				.build();
 	}
 

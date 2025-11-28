@@ -1,5 +1,4 @@
-import type React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChatWorkflow } from '@/hooks/useChatWorkflow';
 import { MessageList } from './MessageList';
@@ -7,12 +6,14 @@ import { MessageInput } from './MessageInput';
 import { ActionButtons } from './ActionButtons';
 import { FloorPlanSelector } from '@/components/floor-plan/FloorPlanSelector';
 import { HRChatInterface } from '@/components/hr/HRChatInterface';
+import { SamaritanChatInterface } from '@/components/samaritan/SamaritanChatInterface';
 import { IncidentType, WorkflowState } from '@/types/incident.types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { apiService } from '@/services/api.service';
 import type { HRSession } from '@/types/hr.types';
+import type { SamaritanSession } from '@/types/samaritan.types';
 import type { FloorPlanSelection } from '@/types/floor-plan.types';
 
 export function ChatInterface() {
@@ -26,13 +27,14 @@ export function ChatInterface() {
   const [submittedReportId, setSubmittedReportId] = useState<string | null>(null);
   const [hrSession, setHrSession] = useState<HRSession | null>(null);
   const [isConnectingHR, setIsConnectingHR] = useState(false);
-  const [latestFloorSelection, setLatestFloorSelection] = useState<FloorPlanSelection | null>(null);
-  const [facilityDetails, setFacilityDetails] = useState('');
-  const [facilityImage, setFacilityImage] = useState<File | null>(null);
-  const [facilityImagePreview, setFacilityImagePreview] = useState<string | null>(null);
-  const [facilityDetailsSaved, setFacilityDetailsSaved] = useState(false);
-  const [facilityDetailsError, setFacilityDetailsError] = useState<string | null>(null);
-  const [isSavingFacilityDetails, setIsSavingFacilityDetails] = useState(false);
+  const [samaritanSession, setSamaritanSession] = useState<SamaritanSession | null>(null);
+  const [isConnectingSamaritan, setIsConnectingSamaritan] = useState(false);
+  const [_latestFloorSelection, setLatestFloorSelection] = useState<FloorPlanSelection | null>(null);
+  const [_facilityDetails, setFacilityDetails] = useState('');
+  const [_facilityImage, setFacilityImage] = useState<File | null>(null);
+  const [_facilityImagePreview, setFacilityImagePreview] = useState<string | null>(null);
+  const [_facilityDetailsSaved, setFacilityDetailsSaved] = useState(false);
+  const [_facilityDetailsError, setFacilityDetailsError] = useState<string | null>(null);
 
   const handleActionClick = async (action: string) => {
     const lowerAction = action.toLowerCase();
@@ -62,6 +64,30 @@ export function ChatInterface() {
     }
   };
 
+  const connectToSamaritan = async () => {
+    setIsConnectingSamaritan(true);
+    try {
+      const response = await apiService.connectToSamaritan({ sessionId });
+      setSamaritanSession({
+        connected: response.connected,
+        samaritanName: response.samaritanName,
+        samaritanImage: response.samaritanImage,
+        message: response.message,
+      });
+    } catch (error) {
+      console.error('Failed to connect to Samaritan:', error);
+      alert('Failed to connect to emergency Samaritan. Please try again.');
+    } finally {
+      setIsConnectingSamaritan(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentResponse?.metadata?.connectToSamaritan && !samaritanSession && !isConnectingSamaritan) {
+      connectToSamaritan();
+    }
+  }, [currentResponse?.metadata?.connectToSamaritan]);
+
   const handleLocationSelect = (selection: FloorPlanSelection) => {
     const location = `Floor plan location: ${selection.floorLabel}, X: ${selection.x.toFixed(1)}%, Y: ${selection.y.toFixed(1)}%`;
     setLatestFloorSelection(selection);
@@ -73,53 +99,53 @@ export function ChatInterface() {
     sendMessage(location, { floorPlanSelection: selection });
   };
 
-  const handleFacilityImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFacilityImage(file);
-      setFacilityDetailsSaved(false);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFacilityImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // const _handleFacilityImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0];
+  //   if (file) {
+  //     setFacilityImage(file);
+  //     setFacilityDetailsSaved(false);
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setFacilityImagePreview(reader.result as string);
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
 
-  const removeFacilityImage = () => {
-    setFacilityImage(null);
-    setFacilityImagePreview(null);
-    setFacilityDetailsSaved(false);
-  };
+  // const _removeFacilityImage = () => {
+  //   setFacilityImage(null);
+  //   setFacilityImagePreview(null);
+  //   setFacilityDetailsSaved(false);
+  // };
 
-  const handleSaveFacilityDetails = async () => {
-    if (!latestFloorSelection) return;
+  // const _handleSaveFacilityDetails = async () => {
+  //   if (!latestFloorSelection) return;
 
-    setIsSavingFacilityDetails(true);
-    setFacilityDetailsError(null);
+  //   setIsSavingFacilityDetails(true);
+  //   setFacilityDetailsError(null);
 
-    try {
-      let imageUrl: string | undefined;
+  //   try {
+  //     let imageUrl: string | undefined;
 
-      if (facilityImage) {
-        // const uploadResult = await apiService.uploadImage(facilityImage);
-      }
+  //     if (facilityImage) {
+  //       // const uploadResult = await apiService.uploadImage(facilityImage);
+  //     }
 
-      await apiService.saveFacilityDetails({
-        sessionId,
-        details: facilityDetails.trim() || undefined,
-        imageUrl,
-        floor: latestFloorSelection.floor,
-      });
+  //     await apiService.saveFacilityDetails({
+  //       sessionId,
+  //       details: facilityDetails.trim() || undefined,
+  //       imageUrl,
+  //       floor: latestFloorSelection.floor,
+  //     });
 
-      setFacilityDetailsSaved(true);
-    } catch (error) {
-      console.error('Failed to save facility details', error);
-      setFacilityDetailsError('Could not save details. Please try again.');
-    } finally {
-      setIsSavingFacilityDetails(false);
-    }
-  };
+  //     setFacilityDetailsSaved(true);
+  //   } catch (error) {
+  //     console.error('Failed to save facility details', error);
+  //     setFacilityDetailsError('Could not save details. Please try again.');
+  //   } finally {
+  //     setIsSavingFacilityDetails(false);
+  //   }
+  // };
 
   const handleSubmitReport = async (anonymous: boolean) => {
     setIsSubmitting(true);
@@ -161,10 +187,12 @@ export function ChatInterface() {
 
 
   const showFloorPlan =
-    currentResponse?.incidentType === IncidentType.FACILITY &&
-    currentResponse?.metadata?.requiredFields &&
-    Array.isArray(currentResponse.metadata.requiredFields) &&
-    (currentResponse.metadata.requiredFields as string[]).includes('where');
+    (currentResponse?.incidentType === IncidentType.FACILITY &&
+      currentResponse?.metadata?.requiredFields &&
+      Array.isArray(currentResponse.metadata.requiredFields) &&
+      (currentResponse.metadata.requiredFields as string[]).includes('where')) ||
+    (currentResponse?.incidentType === IncidentType.EMERGENCY &&
+      currentResponse?.metadata?.showFloorPlan === true);
 
   const showHROptions =
     currentResponse?.workflowState === WorkflowState.AWAITING_HR_DECISION &&
@@ -180,8 +208,19 @@ export function ChatInterface() {
   const shouldShowActions =
     !!currentResponse?.suggestedActions?.length && !canSubmit && !submissionComplete && !showHROptions;
 
-  const shouldShowFacilityDetails =
-    currentResponse?.incidentType === IncidentType.FACILITY && Boolean(latestFloorSelection);
+  // const _shouldShowFacilityDetails =
+  //   currentResponse?.incidentType === IncidentType.FACILITY && Boolean(latestFloorSelection);
+
+  if (samaritanSession?.connected) {
+    return (
+      <SamaritanChatInterface
+        sessionId={sessionId}
+        samaritanSession={samaritanSession}
+        initialMessage={samaritanSession.message}
+        previousMessages={messages}
+      />
+    );
+  }
 
   if (hrSession?.connected) {
     return (

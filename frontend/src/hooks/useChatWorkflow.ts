@@ -68,7 +68,7 @@ export function useChatWorkflow() {
           content: 'I apologize, but I encountered an error. Please try again.',
           timestamp: new Date(),
         };
-        setMessages((prev) => [...prev, assistantMessage]);
+        setMessages((prev) => [...prev, errorMessage]);
       } finally {
         setIsLoading(false);
       }
