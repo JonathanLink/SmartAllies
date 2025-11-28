@@ -17,7 +17,17 @@ public class ResourceService {
 
     static {
         INCIDENT_RESOURCES.put(IncidentType.HUMAN, List.of(
-                "Code of Conduct: https://inside.swissquote.com/"
+                "Code of Conduct: https://inside.swissquote.com/",
+                "la speak up policy: https://links.imagerelay.com/cdn/2958/ql/whistleblowing-policy-en",
+                "Your Line Manager or any other Manager in the hierarchic line",
+                "Representatives of the HR Department: Malou Daumas – malou.daumas@swissquote.ch, "
+                        + "Solenne Bourgue – solenne.bourgue@swissquote.ch, "
+                        + "Caroline Kettenacker – caroline.kettenacker@swissquote.ch, "
+                        + "Tara Yip – tara.yip@swissquote.ch",
+                "External Trusted Person: Internal Conflict Prevention and Management Service of the Vaud Chamber of\n"
+                        + "Commerce and Industry (CVCI)",
+                "email: conflits@cvci.ch",
+                "phone: 021 613 35 37"
         ));
 
         INCIDENT_RESOURCES.put(IncidentType.FACILITY, List.of(
