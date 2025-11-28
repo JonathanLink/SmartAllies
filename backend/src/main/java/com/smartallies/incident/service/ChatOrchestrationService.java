@@ -37,6 +37,7 @@ public class ChatOrchestrationService {
             case CLASSIFICATION_CONFIRMED -> handlePostClassificationActions(context, request);
             case COLLECTING_DETAILS -> handleDetailsCollection(context, request);
             case AWAITING_REPORT_CONFIRMATION -> handleReportConfirmation(context, request);
+            case AWAITING_HR_DECISION -> handleHRDecision(context, request);
             case EMERGENCY_ACTIVE -> handleEmergencyFlow(context, request);
             default -> buildErrorResponse("Invalid workflow state");
         };
@@ -213,6 +214,47 @@ public class ChatOrchestrationService {
         }
     }
 
+    private ChatResponse handleHRDecision(ConversationContext context, ChatRequest request) {
+        log.info("Handling HR decision for session: {}", request.getSessionId());
+        
+        String userResponse = request.getMessage().toLowerCase().trim();
+        
+        if (userResponse.contains("connect") || userResponse.contains("hr")) {
+            context.setWorkflowState(WorkflowState.HR_CONNECTED);
+            contextService.updateContext(context);
+            
+            return ChatResponse.builder()
+                    .message("Connecting you to an HR partner...")
+                    .incidentType(context.getIncidentType())
+                    .workflowState(context.getWorkflowState())
+                    .metadata(Map.of("connectToHR", true))
+                    .build();
+        } else {
+            context.setWorkflowState(WorkflowState.REPORT_READY);
+            contextService.updateContext(context);
+            
+            String summaryPrompt = PromptTemplates.buildReportSummaryPrompt(
+                    context.getIncidentType(),
+                    context.getInitialMessage(),
+                    context.getCollectedFields()
+            );
+            String summaryResponse = llmService.generateResponse(summaryPrompt);
+            JsonNode summaryJson = llmService.parseJsonResponse(summaryResponse);
+            String summary = summaryJson.get("summary").asText();
+            
+            context.updateField("summary", summary);
+            
+            return ChatResponse.builder()
+                    .message("Here's a summary of your report:\n\n" + summary + 
+                            "\n\nWould you like to submit this report?")
+                    .incidentType(context.getIncidentType())
+                    .workflowState(context.getWorkflowState())
+                    .suggestedActions(Arrays.asList("Submit", "Submit Anonymously", "Cancel"))
+                    .metadata(Map.of("summary", summary, "collectedFields", context.getCollectedFields()))
+                    .build();
+        }
+    }
+
     private ChatResponse handleDetailsCollection(ConversationContext context, ChatRequest request) {
         log.info("Collecting details for {} incident", context.getIncidentType());
         
@@ -237,6 +279,21 @@ public class ChatOrchestrationService {
         boolean allFieldsCollected = Stream.of("what", "where").allMatch(context::hasField);
         
         if (allFieldsCollected) {
+            if (context.getIncidentType() == IncidentType.HUMAN) {
+                context.setWorkflowState(WorkflowState.AWAITING_HR_DECISION);
+                contextService.updateContext(context);
+                
+                return ChatResponse.builder()
+                        .message("Thank you for sharing those details. " +
+                                "Would you like to share more details about this incident, " +
+                                "or would you prefer to connect with an HR partner who can provide " +
+                                "confidential support? You will remain anonymous.")
+                        .incidentType(context.getIncidentType())
+                        .workflowState(context.getWorkflowState())
+                        .suggestedActions(Arrays.asList("Share more details", "Connect to HR Partner"))
+                        .build();
+            }
+            
             context.setWorkflowState(WorkflowState.REPORT_READY);
             
             String summaryPrompt = PromptTemplates.buildReportSummaryPrompt(

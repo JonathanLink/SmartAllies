@@ -1,6 +1,7 @@
 import { APP_CONFIG } from '@/config/constants';
 import type { ChatRequest, ChatResponse } from '@/types/incident.types';
 import type { IncidentReport, SubmitReportRequest } from '@/types/report.types';
+import type { ConnectHRRequest, ConnectHRResponse, HRChatRequest, HRChatResponse } from '@/types/hr.types';
 
 class ApiService {
   private baseUrl = APP_CONFIG.API_BASE_URL;
@@ -59,6 +60,38 @@ class ApiService {
 
     if (!response.ok) {
       throw new Error(`Get report error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async connectToHR(request: ConnectHRRequest): Promise<ConnectHRResponse> {
+    const response = await fetch(`${this.baseUrl}/hr/connect`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Connect to HR error: ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async sendHRMessage(request: HRChatRequest): Promise<HRChatResponse> {
+    const response = await fetch(`${this.baseUrl}/hr/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HR chat error: ${response.statusText}`);
     }
 
     return response.json();
