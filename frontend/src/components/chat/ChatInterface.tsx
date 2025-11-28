@@ -102,7 +102,7 @@ export function ChatInterface() {
       let imageUrl: string | undefined;
 
       if (facilityImage) {
-        imageUrl = await apiService.uploadImage(facilityImage);
+        // const uploadResult = await apiService.uploadImage(facilityImage);
       }
 
       await apiService.saveFacilityDetails({
